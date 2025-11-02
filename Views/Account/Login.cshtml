@@ -1,21 +1,62 @@
 ﻿@model AuthServer.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Вхід";
+}
 
-<h2>Login</h2>
-<form asp-action="Login" method="post">
-    <input type="hidden" asp-for="ReturnUrl" />
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 420px; border-radius: 12px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark">Вхід до системи</h3>
+            <p class="text-muted mb-0">Будь ласка, введіть ваші облікові дані</p>
+        </div>
 
-    <div>
-        <label asp-for="Username"></label>
-        <input asp-for="Username" />
-        <span asp-validation-for="Username"></span>
+        @if (!string.IsNullOrEmpty(ViewBag.LoginError))
+        {
+            <div class="alert alert-danger text-center" role="alert">
+                @ViewBag.LoginError
+            </div>
+        }
+
+        <form asp-action="Login" method="post" novalidate>
+            <input type="hidden" asp-for="ReturnUrl" />
+            <input type="hidden" asp-for="ExpectedRole" />
+
+            @if (!string.IsNullOrEmpty(Model.ExpectedRole))
+            {
+                <p class="text-center text-muted mb-3">
+                    Ви входите як <strong>@Model.ExpectedRole</strong>
+                </p>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label fw-semibold"></label>
+                <input asp-for="Username" class="form-control form-control-lg" placeholder="Введіть логін" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label fw-semibold"></label>
+                <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="Введіть пароль" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg rounded-3 shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Увійти
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="mb-0 text-muted">Не маєте акаунту?</p>
+            <a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl"
+               class="btn btn-outline-secondary mt-2">
+                Зареєструватися
+            </a>
+        </div>
     </div>
+</div>
 
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-
-    <button type="submit">Login</button>
-</form>
-<a asp-controller="Account" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-primary mb-3">Register</a>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -22,21 +22,18 @@ namespace AuthServer.Services
             var user = await _userManager.GetUserAsync(context.Subject);
             if (user == null) return;
 
-            // Basic user claims
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.FullName ?? user.UserName ?? ""),
                 new Claim(ClaimTypes.Email, user.Email ?? "")
             };
 
-            // 👇 Add roles
             var roles = await _userManager.GetRolesAsync(user);
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            // Include them in the token
             context.IssuedClaims.AddRange(claims);
         }
 

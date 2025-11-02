@@ -19,6 +19,18 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddSingleton<CloudinaryService>();
+
+builder.Services.AddAuthentication()
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.Authority = "https://localhost:5000";
+        options.TokenValidationParameters.ValidateAudience = false;
+    });
+
+builder.Services.AddAuthorization();
+
+
 builder.Services.AddIdentityServer(options =>
     {
         options.Authentication.CookieLifetime = TimeSpan.FromMinutes(30);
@@ -39,19 +51,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseIdentityServer();
 app.UseAuthorization();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    string[] roles = new[] { "Admin", "Professor", "Student" };
-    foreach (var r in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(r))
-            await roleManager.CreateAsync(new IdentityRole(r));
-    }
-}
 
 app.MapDefaultControllerRoute();
 

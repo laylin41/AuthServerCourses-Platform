@@ -32,9 +32,25 @@ namespace AuthServer.Controllers
 
         // -------------------- LOGIN --------------------
         [HttpGet]
-        public IActionResult Login(string returnUrl)
+        public IActionResult Login(string returnUrl, string expectedRole)
         {
-            return View(new LoginViewModel { ReturnUrl = returnUrl });
+            // Якщо expectedRole не прийшов напряму — дістаємо його з returnUrl
+            if (string.IsNullOrEmpty(expectedRole) && !string.IsNullOrEmpty(returnUrl))
+            {
+                var uri = new Uri("https://dummy" + returnUrl); // щоб працювало з відносним шляхом
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+                if (query.TryGetValue("expectedRole", out var roleFromUrl))
+                {
+                    expectedRole = roleFromUrl;
+                }
+            }
+
+            return View(new LoginViewModel
+            {
+                ReturnUrl = returnUrl,
+                ExpectedRole = expectedRole
+            });
         }
 
         [HttpPost]
@@ -46,6 +62,15 @@ namespace AuthServer.Controllers
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user != null)
             {
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                // Перевірка очікуваної ролі
+                if (!string.IsNullOrEmpty(model.ExpectedRole) && !userRoles.Contains(model.ExpectedRole))
+                {
+                    ViewBag.LoginError = $"Авторизований користувач повинен бути \"{model.ExpectedRole}\".";
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                 if (result.Succeeded)
                 {
@@ -54,9 +79,11 @@ namespace AuthServer.Controllers
                 }
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login attempt");
+            ViewBag.LoginError = "Невірний логін або пароль.";
             return View(model);
         }
+
+
 
         // -------------------- REGISTER --------------------
         [HttpGet]

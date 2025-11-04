@@ -1,14 +1,16 @@
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using AuthServer;
+using AuthServer.Data;
+using AuthServer.Models;
+using AuthServer.Services;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Test;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using AuthServer;
-using AuthServer.Services;
-using AuthServer.Models;
-using Microsoft.AspNetCore.Identity;
 using Duende.IdentityServer.Services;
-using AuthServer.Data;
+using Duende.IdentityServer.Test;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +32,7 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddAuthorization();
 
-
+var cert = new X509Certificate2("./keys/identity.pfx", "StrongP@ssw0rd!");
 builder.Services.AddIdentityServer(options =>
     {
         options.Authentication.CookieLifetime = TimeSpan.FromMinutes(30);
@@ -38,7 +40,12 @@ builder.Services.AddIdentityServer(options =>
     .AddAspNetIdentity<ApplicationUser>()
     .AddInMemoryClients(Config.Clients)
     .AddInMemoryIdentityResources(Config.IdentityResources)
-    .AddInMemoryApiScopes(Config.ApiScopes);
+    .AddInMemoryApiScopes(Config.ApiScopes)
+    .AddSigningCredential(cert);
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
+    .SetApplicationName("CoursesAuthServer");
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 

@@ -61,14 +61,11 @@ builder.WebHost.ConfigureKestrel(options =>
         {
             listenOptions.UseHttps(certPath, keyPath);
         });
+        Console.WriteLine($"[Kestrel] HTTPS: using mkcert ({certPath})");
     }
     else
     {
-        // Fallback: dev cert (тільки Development)
-        options.ListenLocalhost(5000, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        });
+        throw new FileNotFoundException($"Certificate not found: {certPath}");
     }
 });
 

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
+//using System.Security.Cryptography.X509Certificates;
 using AuthServer;
 using AuthServer.Data;
 using AuthServer.Models;
@@ -32,7 +32,7 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddAuthorization();
 
-var cert = new X509Certificate2("./keys/identity.pfx", "StrongP@ssw0rd!");
+//var cert = new X509Certificate2("./keys/identity.pfx", "StrongP@ssw0rd!");
 builder.Services.AddIdentityServer(options =>
     {
         options.Authentication.CookieLifetime = TimeSpan.FromMinutes(30);
@@ -40,8 +40,7 @@ builder.Services.AddIdentityServer(options =>
     .AddAspNetIdentity<ApplicationUser>()
     .AddInMemoryClients(Config.Clients)
     .AddInMemoryIdentityResources(Config.IdentityResources)
-    .AddInMemoryApiScopes(Config.ApiScopes)
-    .AddSigningCredential(cert);
+    .AddInMemoryApiScopes(Config.ApiScopes);
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
@@ -50,6 +49,28 @@ builder.Services.AddDataProtection()
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddControllersWithViews();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var certPath = Path.Combine(AppContext.BaseDirectory, "certs", "localhost+2.pem");
+    var keyPath = Path.Combine(AppContext.BaseDirectory, "certs", "localhost+2-key.pem");
+
+    if (File.Exists(certPath) && File.Exists(keyPath))
+    {
+        options.ListenLocalhost(5000, listenOptions =>
+        {
+            listenOptions.UseHttps(certPath, keyPath);
+        });
+    }
+    else
+    {
+        // Fallback: dev cert (тільки Development)
+        options.ListenLocalhost(5000, listenOptions =>
+        {
+            listenOptions.UseHttps();
+        });
+    }
+});
 
 var app = builder.Build();
 

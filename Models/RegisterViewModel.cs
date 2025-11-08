@@ -32,6 +32,8 @@ namespace AuthServer.Models
 
         [Required]
         [EmailAddress]
+        [RegularExpression(@"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$",
+            ErrorMessage = "Email is not valid according to RFC822")]
         public string Email { get; set; } = string.Empty;
 
         [Required]

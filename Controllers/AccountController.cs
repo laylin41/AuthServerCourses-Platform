@@ -128,10 +128,6 @@ namespace AuthServer.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout(string logoutId)
         {
-            // build a view with a "Logout" confirmation if you want, or logout directly:
-            var context = await _interaction.GetLogoutContextAsync(logoutId);
-
-            // you can skip confirmation for simplicity:
             return await LogoutConfirmed(logoutId);
         }
 

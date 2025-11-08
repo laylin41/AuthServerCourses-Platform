@@ -42,6 +42,8 @@ namespace AuthServer.Data
                     throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 }
 
+                await userManager.AddToRoleAsync(adminUser, "Student");
+                await userManager.AddToRoleAsync(adminUser, "Professor");
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
             else

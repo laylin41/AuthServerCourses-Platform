@@ -34,10 +34,9 @@ namespace AuthServer.Controllers
         [HttpGet]
         public IActionResult Login(string returnUrl, string expectedRole)
         {
-            // Якщо expectedRole не прийшов напряму — дістаємо його з returnUrl
             if (string.IsNullOrEmpty(expectedRole) && !string.IsNullOrEmpty(returnUrl))
             {
-                var uri = new Uri("https://dummy" + returnUrl); // щоб працювало з відносним шляхом
+                var uri = new Uri("https://dummy" + returnUrl);
                 var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
                 if (query.TryGetValue("expectedRole", out var roleFromUrl))
@@ -56,15 +55,20 @@ namespace AuthServer.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            Console.WriteLine("Inside POST Login");
             if (!ModelState.IsValid)
                 return View(model);
 
             var user = await _userManager.FindByNameAsync(model.Username);
+
             if (user != null)
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
 
-                // Перевірка очікуваної ролі
+                Console.WriteLine($"Login attempt for user {user.Email}");
+                Console.WriteLine($"ReturnUrl: {model.ReturnUrl}");
+                Console.WriteLine($"User roles: {string.Join(",", userRoles)}");
+
                 if (!string.IsNullOrEmpty(model.ExpectedRole) && !userRoles.Contains(model.ExpectedRole))
                 {
                     ViewBag.LoginError = $"Авторизований користувач повинен бути \"{model.ExpectedRole}\".";

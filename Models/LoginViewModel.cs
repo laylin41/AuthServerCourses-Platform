@@ -12,7 +12,7 @@ namespace AuthServer.Models
         public string Password { get; set; } = string.Empty;
 
         public string? ReturnUrl { get; set; }
-        public string ExpectedRole { get; set; }
+        public string? ExpectedRole { get; set; }
     }
 
 }

@@ -14,6 +14,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -26,7 +30,7 @@ builder.Services.AddSingleton<CloudinaryService>();
 builder.Services.AddAuthentication()
     .AddJwtBearer("Bearer", options =>
     {
-        options.Authority = "https://localhost:5000";
+        options.Authority = "https://localhost:5005";
         options.TokenValidationParameters.ValidateAudience = false;
     });
 
@@ -35,7 +39,7 @@ builder.Services.AddAuthorization();
 //var cert = new X509Certificate2("./keys/identity.pfx", "StrongP@ssw0rd!");
 builder.Services.AddIdentityServer(options =>
     {
-        options.Authentication.CookieLifetime = TimeSpan.FromMinutes(30);
+        options.Authentication.CookieLifetime = TimeSpan.FromHours(1);
     })
     .AddAspNetIdentity<ApplicationUser>()
     .AddInMemoryClients(Config.Clients)
@@ -50,27 +54,17 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddControllersWithViews();
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    var basePath = builder.Environment.ContentRootPath;
-    var certPath = Path.Combine(basePath, "certs", "localhost+2.pem");
-    var keyPath = Path.Combine(basePath, "certs", "localhost+2-key.pem");
-
-    if (File.Exists(certPath) && File.Exists(keyPath))
-    {
-        options.ListenLocalhost(5000, listenOptions =>
-        {
-            listenOptions.UseHttps(certPath, keyPath);
-        });
-        Console.WriteLine($"[Kestrel] HTTPS: using mkcert ({certPath})");
-    }
-    else
-    {
-        throw new FileNotFoundException($"Certificate not found: {certPath}");
-    }
-});
-
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
 app.UseStaticFiles();
 app.UseRouting();

@@ -46,25 +46,35 @@ builder.Services.AddIdentityServer(options =>
     .AddInMemoryIdentityResources(Config.IdentityResources)
     .AddInMemoryApiScopes(Config.ApiScopes);
 
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
-    .SetApplicationName("CoursesAuthServer");
+//builder.Services.AddDataProtection()
+//    .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
+//    .SetApplicationName("CoursesAuthServer");
 
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddControllersWithViews();
 
-var app = builder.Build();
+//builder.WebHost.ConfigureKestrel(options =>
+//{
+//    var basePath = builder.Environment.ContentRootPath;
+//    var certPath = Path.Combine(basePath, "certs", "localhost+2.pem");
+//    var keyPath = Path.Combine(basePath, "certs", "localhost+2-key.pem");
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+//    if (File.Exists(certPath) && File.Exists(keyPath))
+//    {
+//        options.ListenLocalhost(5000, listenOptions =>
+//        {
+//            listenOptions.UseHttps(certPath, keyPath);
+//        });
+//        Console.WriteLine($"[Kestrel] HTTPS: using mkcert ({certPath})");
+//    }
+//    else
+//    {
+//        throw new FileNotFoundException($"Certificate not found: {certPath}");
+//    }
+//});
+
+var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
